@@ -10,7 +10,7 @@ A minimalist daily task manager that helps you focus on what matters today. Feat
 
 ## Live Demo
 
-Visit the live app at: [OneDayFocus](https://[your-github-username].github.io/OneDayFocus)
+Visit the live app at: [OneDayFocus](https://dcbailey8589.github.io/OneDayFocus)
 
 ## Features
 
