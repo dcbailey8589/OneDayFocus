@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneDayFocus</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --input-bg: #f5f5f5;
+            --task-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --accent-color: #4a90e2;
+            --delete-color: #ff4444;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --input-bg: #2d2d2d;
+            --task-bg: #2d2d2d;
+            --border-color: #404040;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --accent-color: #64b5f6;
+            --delete-color: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: 2px solid var(--accent-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .quote {
+            font-style: italic;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 20px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--task-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .task.completed {
+            opacity: 0.7;
+        }
+
+        .task input[type="checkbox"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .completed .task-text {
+            text-decoration: line-through;
+        }
+
+        .delete-btn {
+            background-color: var(--delete-color);
+            padding: 8px 16px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle">Toggle Theme</button>
+    <header>
+        <h1>OneDayFocus</h1>
+        <div class="quote"></div>
+    </header>
+    <div class="input-container">
+        <input type="text" id="taskInput" placeholder="Enter your task here..." />
+        <button onclick="addTask()">Add</button>
+    </div>
+    <div class="task-list" id="taskList"></div>
+
+    <script>
+        // Quotes array
+        const quotes = [
+            "The only way to do great work is to love what you do. - Steve Jobs",
+            "It always seems impossible until it's done. - Nelson Mandela",
+            "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+            "Success is not final, failure is not fatal. - Winston Churchill",
+            "The future depends on what you do today. - Mahatma Gandhi"
+        ];
+
+        // Theme toggle
+        const themeToggle = document.querySelector('.theme-toggle');
+        let isDarkTheme = localStorage.getItem('darkTheme') === 'true';
+
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+            localStorage.setItem('darkTheme', isDarkTheme);
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Set initial theme
+        if (isDarkTheme) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        // Display random quote
+        function setRandomQuote() {
+            const quoteElement = document.querySelector('.quote');
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            quoteElement.textContent = randomQuote;
+        }
+
+        // Task management
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function createTaskElement(task) {
+            const taskElement = document.createElement('div');
+            taskElement.className = `task ${task.completed ? 'completed' : ''}`;
+            
+            taskElement.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} />
+                <span class="task-text">${task.text}</span>
+                <button class="delete-btn">Delete</button>
+            `;
+
+            const checkbox = taskElement.querySelector('input');
+            checkbox.addEventListener('change', () => {
+                task.completed = checkbox.checked;
+                taskElement.classList.toggle('completed');
+                saveTasks();
+            });
+
+            const deleteBtn = taskElement.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => {
+                tasks = tasks.filter(t => t !== task);
+                taskElement.remove();
+                saveTasks();
+            });
+
+            return taskElement;
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                taskList.appendChild(createTaskElement(task));
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                const task = { text, completed: false, timestamp: Date.now() };
+                tasks.push(task);
+                const taskElement = createTaskElement(task);
+                document.getElementById('taskList').appendChild(taskElement);
+                saveTasks();
+                input.value = '';
+            }
+        }
+
+        // Handle Enter key in input
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Check for midnight reset
+        function setupMidnightReset() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const timeUntilMidnight = tomorrow - now;
+
+            setTimeout(() => {
+                tasks = [];
+                saveTasks();
+                renderTasks();
+                setupMidnightReset(); // Setup for the next day
+            }, timeUntilMidnight);
+        }
+
+        // Initial setup
+        setRandomQuote();
+        renderTasks();
+        setupMidnightReset();
+    </script>
+</body>
+</html> 
